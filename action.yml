@@ -1,4 +1,4 @@
-name: "Flutter Auto Tag"
+name: "Pubspec Auto Tag"
 description: "Automatically generate a new tag when the pubspec.yaml version changes"
 author: "Mike Schwinum"
 branding:
