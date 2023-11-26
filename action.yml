@@ -1,6 +1,6 @@
 name: "Flutter Auto Tag"
-description: "Automatically bumps the version in the pubspec.yaml"
-author: "Jacopo Carlini"
+description: "Automatically generate a new tag when the pubspec.yaml version changes"
+author: "Mike Schwinum"
 branding:
   icon: "tag"
   color: "blue"
@@ -39,5 +39,5 @@ outputs:
   version:
     description: The version, as defined in pubspec.yaml or explicitly set in the input.
 runs:
-  using: "node12"
+  using: "node20"
   main: "src/main.js"

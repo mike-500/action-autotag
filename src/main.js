@@ -136,7 +136,7 @@ async function run() {
                 type: 'commit'
             });
 
-            core.warning(`Created new tag: ${newTag.data.tag}`)
+            core.info(`Created new tag: ${newTag.data.tag}`)
         } catch (e) {
             core.setFailed(e.message);
             return
@@ -151,7 +151,7 @@ async function run() {
                 sha: newTag.data.sha,
             });
 
-            core.warning(`Reference ${newReference.data.ref} available at ${newReference.data.url}` + os.EOL)
+            core.info(`Reference ${newReference.data.ref} available at ${newReference.data.url}` + os.EOL)
         } catch (e) {
             core.warning({
                 owner,
