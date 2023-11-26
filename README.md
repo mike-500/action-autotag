@@ -1,5 +1,5 @@
-# Autotag Flutter App
-This is a fork from [Klemensas/action-autotag](https://github.com/Klemensas/action-autotag) for **Flutter** application.
+# Autotag Flutter/Dart App
+This is a fork from [jacopocarlini/action-autotag](https://github.com/jacopocarlini/action-autotag) for **Flutter/Dart** application.
 
 This action will read a `pubspec.yaml` file and compare the `version` attribute to the project's known tags. If a corresponding tag does not exist, it will be created.
 
