@@ -45,9 +45,9 @@ async function getExistingTag(octokit, owner, repo) {
             per_page: 100,
         })
     } catch (e) {
-        core.debug(`No tag found`);
+        core.info('No tags found');
     }
-    return tags;
+    return tags.data;
 }
 
 function loadPubspec() {
