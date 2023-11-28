@@ -14,7 +14,7 @@ const getTagMessage = async (tags, octokit, owner, repo, version) => {
                 basehead: `${latestTag.name}...master`,
             });
             return changelog.data.commits
-                .map((commit) => commit.commit.message)
+                .map((commit) => `** ${commit.commit.message} **`)
                 .join('\n');
         } catch (error) {
             core.warning(`Failed to generate changelog from commits: ${error}`);
@@ -42,7 +42,7 @@ const createTagAndRef = async (octokit, owner, repo, version, tagMessage) => {
         ref: `refs/tags/${newTag.data.tag}`,
         sha: newTag.data.sha,
     });
-    core.info(`Reference ${newRef.data.ref} available at ${newRef.data.url}`)
+    core.info(`Created new reference ${newRef.data.ref} available at ${newRef.data.url}`)
 
     return newTag.data.tag;
 }

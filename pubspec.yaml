@@ -1,4 +1,4 @@
-name: Example
+name: example
 description: Example
 publish_to: "none"
 version: 4.0.7+77
@@ -20,5 +20,4 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  assets:
-    - assets/icon.png
+  # assets:

@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: mike-500/action-autotag@4.0.0
+    - uses: mike-500/action-autotag@4.0.1
       with:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 ```
@@ -33,7 +33,7 @@ This **order** is important!
 
 ```yaml
 - uses: actions/checkout@v2
-- uses: mike-500/action-autotag@4.0.0
+- uses: mike-500/action-autotag@4.0.1
 ```
 
 > If the repository is not checked out first, the autotagger cannot find the pubspec.yaml file.
@@ -43,7 +43,7 @@ This **order** is important!
 The `GITHUB_TOKEN` must be passed in. Without this, it is not possible to create a new tag. Make sure the autotag action looks like the following example:
 
 ```yaml
-- uses: jacopocarlini/action-autotag@stable
+- uses: mike-500/action-autotag@4.0.1
   with:
     GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 ```
