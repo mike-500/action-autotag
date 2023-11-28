@@ -36,14 +36,13 @@ async function setTagMessage(tagMsg, tags, github, owner, repo, changelogStructu
     return tagMsg;
 }
 
-async function getExistingTag(octokit, owner, repo) {
+async function getExistingTags(octokit, owner, repo) {
     let tags = { data: [] };
     try {
-        tags = await octokit.repos.listTags({
+        tags = await octokit.rest.repos.listTags({
             owner,
             repo,
-            per_page: 100,
-        })
+        });
     } catch (error) {
         core.info(`No tags found: ${error}`);
     }
@@ -74,7 +73,7 @@ async function run() {
         const { owner, repo } = github.context.repo;
 
         // // Check for existing tag
-        let tags = await getExistingTag(octokit, owner, repo);
+        let tags = await getExistingTags(octokit, owner, repo);
         core.info(tags);
 
         // const tagPrefix = core.getInput('tag_prefix', { required: false });
@@ -144,7 +143,7 @@ async function run() {
         // // Store values for other actions
         // if (typeof newTag === 'object' && typeof newReference === 'object') {
         //     core.setOutput('tagname', tagName);
-       
+
         // }
     } catch (error) {
         core.setFailed(`Exception: ${error}`);
