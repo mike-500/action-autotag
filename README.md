@@ -83,18 +83,7 @@ There are several options to customize how the tag is created.
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         tag_prefix: "v"
     ```
-
-1. `tag_suffix`
-
-    Text can also be applied to the end of the tag by setting `tag_suffix`. For example, if `tag_suffix` is ` (beta)`, the tag would be `1.0.0 (beta)`. Please note this example violates semantic versioning and is merely here to illustrate how to add text to the end of a tag name if you _really_ want to.
-
-    ```yaml
-    - uses: Klemensas/action-autotag@stable
-      with:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-        tag_suffix: " (beta)"
-    ```
-
+    
 1. `tag_message`
 
     This is the annotated commit message associated with the tag. By default, a
