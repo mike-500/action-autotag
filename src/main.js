@@ -73,7 +73,7 @@ async function run() {
         // // Check for existing tag
         let tags = await getExistingTags(octokit, owner, repo);
         core.info(tags);
-        core.info(tags.map((tag) = tag.name));
+        core.info(tags.map((tag) => tag.name));
 
 
         // const tagPrefix = core.getInput('tag_prefix', { required: false });
