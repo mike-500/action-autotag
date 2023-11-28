@@ -13,7 +13,6 @@ async function getTagMessage(tags, octokit, owner, repo, version) {
                 repo,
                 basehead: `${latestTag.name}...master`,
             });
-            core.info(changelog.data.commits);
             return changelog.data.commits
                 .map((commit) => commit.commit.message)
                 .join('\n');
@@ -95,52 +94,6 @@ async function run() {
         const newTagName = await createTagAndRef(octokit, owner, repo, version, tagMessage);
 
         core.setOutput('tagname', newTagName);
-        // let newTag;
-        // try {
-        //     tagMsg = tagMsg.trim().length > 0 ? tagMsg : `Version ${version}`;
-
-        //     newTag = await github.git.createTag({
-        //         owner,
-        //         repo,
-        //         tag: tagName,
-        //         message: tagMsg,
-        //         object: process.env.GITHUB_SHA,
-        //         type: 'commit'
-        //     });
-
-        //     core.info(`Created new tag: ${newTag.data.tag}`)
-        // } catch (e) {
-        //     core.setFailed(e.message);
-        //     return
-        // }
-
-        // let newReference;
-        // try {
-        //     newReference = await github.git.createRef({
-        //         owner,
-        //         repo,
-        //         ref: `refs/tags/${newTag.data.tag}`,
-        //         sha: newTag.data.sha,
-        //     });
-
-        //     core.info(`Reference ${newReference.data.ref} available at ${newReference.data.url}`)
-        // } catch (e) {
-        //     core.warning({
-        //         owner,
-        //         repo,
-        //         ref: `refs/tags/${newTag.data.tag}`,
-        //         sha: newTag.data.sha,
-        //     });
-
-        //     core.setFailed(e.message);
-        //     return
-        // }
-
-        // // Store values for other actions
-        // if (typeof newTag === 'object' && typeof newReference === 'object') {
-        //     core.setOutput('tagname', tagName);
-
-        // }
     } catch (error) {
         core.setFailed(`Exception: ${error}`);
     }
