@@ -5,9 +5,10 @@ const path = require('path');
 const yaml = require('js-yaml');
 
 async function getTagMessage(tags, octokit, owner, repo, version) {
-    if (tags.data.length > 0) {
+    if (tags.length > 0) {
         try {
-            const latestTag = tags.data.shift();
+            const latestTag = tags.shift();
+            core.info(latestTag);
             const changelog = await octokit.rest.repos.compareCommits({
                 owner,
                 repo,
