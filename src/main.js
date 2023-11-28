@@ -26,6 +26,26 @@ async function getTagMessage(tags, octokit, owner, repo, version) {
     }
 }
 
+async function createTagAndRef(octokit, owner, repo, version, tagMessage) {
+    const newTag = await octokit.rest.git.createTag({
+        owner,
+        repo,
+        tag: version,
+        message: tagMessage,
+        object: process.env.GITHUB_SHA,
+        type: 'commit',
+        // tagger.name,
+        // tagger.email
+    });
+
+    const newRef = await octokit.rest.git.createRef({
+        owner,
+        repo,
+        ref: `refs/tags/${newTag.data.tag}`,
+        sha: newTag.data.sha,
+    });
+}
+
 async function getExistingTags(octokit, owner, repo) {
     try {
         const tags = await octokit.rest.repos.listTags({
@@ -61,7 +81,6 @@ async function run() {
         const { owner, repo } = github.context.repo;
 
         const tags = await getExistingTags(octokit, owner, repo);
-        core.info(tags.map((tag) => tag.name));
 
         for (const tag of tags) {
             if (tag.name === version) {
@@ -70,9 +89,8 @@ async function run() {
             }
         }
 
-        const tagMsg = await getTagMessage(tags, octokit, owner, repo, version);
-        core.info(tagMsg);
-
+        const tagMessage = await getTagMessage(tags, octokit, owner, repo, version);
+        await createTagAndRef(octokit, owner, repo, version, tagMessage);
         // let newTag;
         // try {
         //     tagMsg = tagMsg.trim().length > 0 ? tagMsg : `Version ${version}`;
