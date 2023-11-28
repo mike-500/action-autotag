@@ -44,8 +44,8 @@ async function getExistingTag(octokit, owner, repo) {
             repo,
             per_page: 100,
         })
-    } catch (e) {
-        core.info('No tags found');
+    } catch (error) {
+        core.info(`No tags found: ${error}`);
     }
     return tags.data;
 }
