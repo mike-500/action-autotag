@@ -71,27 +71,16 @@ async function run() {
         const { owner, repo } = github.context.repo;
 
         // // Check for existing tag
-        let tags = await getExistingTags(octokit, owner, repo);
+        const tags = await getExistingTags(octokit, owner, repo);
         core.info(tags);
         core.info(tags.map((tag) => tag.name));
 
-
-        // const tagPrefix = core.getInput('tag_prefix', { required: false });
-        // const tagSuffix = core.getInput('tag_suffix', { required: false });
-        // const changelogStructure = core.getInput('changelog_structure', { required: false });
-
-        // const getTagName = version => {
-        //     return `${tagPrefix}${version}${tagSuffix}`
-        // };
-
-        // // Check for existance of tag and abort (short circuit) if it already exists.
-        // for (let tag of tags.data) {
-        //     if (tag.name === getTagName(version)) {
-        //         core.warning(`"${tag.name.trim()}" tag already exists.` + os.EOL);
-        //         core.setOutput('tagname', '');
-        //         return
-        //     }
-        // }
+        for (const tag of tags.data) {
+            if (tag.name === version) {
+                core.setFailed(`Version tag already exists in repo: ${version}`);
+                return;
+            }
+        }
 
         // // Create the new tag name
         // const tagName = getTagName(version);
