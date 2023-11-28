@@ -12,7 +12,7 @@ async function getTagMessage(tags, octokit, owner, repo, version) {
                 owner: owner,
                 repo: repo,
                 // basehead: `${latestTag.name}..master`,
-                basehead: `3.0.3..master`,
+                basehead: `3.0.3...master`,
             });
             core.info(changelog.data.commits);
             return changelog.data.commits
