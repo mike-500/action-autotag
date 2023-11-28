@@ -72,7 +72,6 @@ async function run() {
 
         // // Check for existing tag
         const tags = await getExistingTags(octokit, owner, repo);
-        core.info(tags);
         core.info(tags.map((tag) => tag.name));
 
         for (const tag of tags) {
