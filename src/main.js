@@ -1,8 +1,7 @@
 const core = require('@actions/core');
-const {GitHub, context} = require('@actions/github');
+const github = require('@actions/github');
 const fs = require('fs');
 const path = require('path');
-const os = require('os');
 const yaml = require('js-yaml');
 
 async function setTagMessage(tagMsg, tags, github, owner, repo, changelogStructure, tagName) {
@@ -37,10 +36,10 @@ async function setTagMessage(tagMsg, tags, github, owner, repo, changelogStructu
     return tagMsg;
 }
 
-async function getExistingTag(github, owner, repo) {
-    let tags = {data: []};
+async function getExistingTag(octokit, owner, repo) {
+    let tags = { data: [] };
     try {
-        tags = await github.repos.listTags({
+        tags = await octokit.repos.listTags({
             owner,
             repo,
             per_page: 100,
@@ -52,134 +51,104 @@ async function getExistingTag(github, owner, repo) {
 }
 
 function loadPubspec() {
-    const dir = fs
-        .readdirSync(path.resolve(process.env.GITHUB_WORKSPACE), {withFileTypes: true})
-        .map(entry => {
-            return `${entry.isDirectory() ? '> ' : '  - '}${entry.name}`
-        })
-        .join('\n');
-
-    core.debug(` Working Directory: ${process.env.GITHUB_WORKSPACE}:\n${dir}`);
-
-    if (!process.env.hasOwnProperty('GITHUB_TOKEN')) {
-        if (!process.env.hasOwnProperty('INPUT_GITHUB_TOKEN')) {
-            core.setFailed('Invalid or missing GITHUB_TOKEN.');
-            return
-        }
-    }
-
-    const pkg_root = core.getInput('package_root', {required: false});
+    const pkg_root = core.getInput('package_root', { required: false });
     const pkgfile = path.join(process.env.GITHUB_WORKSPACE, pkg_root, 'pubspec.yaml');
     if (!fs.existsSync(pkgfile)) {
-        core.setFailed('pubspec.yaml does not exist.');
-        return
+        core.setFailed('pubspec.yaml does not exist');
+        return;
     }
-
     let fileContents = fs.readFileSync(pkgfile, 'utf8');
     return yaml.load(fileContents);
-
 }
 
 async function run() {
     try {
-        core.debug(` Available environment variables:\n -> ${Object.keys(process.env)
-            .map(i => i + ' :: ' + process.env[i])
-            .join('\n -> ')}`);
+        const pkg = loadPubspec();
+        const version = pkg.version.split('\+')[0];
 
-        let pkg = loadPubspec();
-        let version = pkg.version.split('\+')[0];
-        core.setOutput('version', version);
-        core.debug(` Detected version ${version}`);
+        core.info(`Detected version ${version} in pubspec.yaml`);
 
-        // Get authenticated GitHub client (Ocktokit): https://github.com/actions/toolkit/tree/master/packages/github#usage
-        const github = new GitHub(process.env.GITHUB_TOKEN || process.env.INPUT_GITHUB_TOKEN);
+        const octokit = github.getOctokit(process.env.GITHUB_TOKEN || process.env.INPUT_GITHUB_TOKEN)
 
         // Get owner and repo from context of payload that triggered the action
-        const {owner, repo} = context.repo;
+        const { owner, repo } = github.context.repo;
 
         // // Check for existing tag
-        let tags = await getExistingTag(github, owner, repo);
+        let tags = await getExistingTag(octokit, owner, repo);
+        core.info(tags);
 
-        const tagPrefix = core.getInput('tag_prefix', {required: false});
-        const tagSuffix = core.getInput('tag_suffix', {required: false});
-        const changelogStructure = core.getInput('changelog_structure', {required: false});
+        // const tagPrefix = core.getInput('tag_prefix', { required: false });
+        // const tagSuffix = core.getInput('tag_suffix', { required: false });
+        // const changelogStructure = core.getInput('changelog_structure', { required: false });
 
-        const getTagName = version => {
-            return `${tagPrefix}${version}${tagSuffix}`
-        };
+        // const getTagName = version => {
+        //     return `${tagPrefix}${version}${tagSuffix}`
+        // };
 
-        // Check for existance of tag and abort (short circuit) if it already exists.
-        for (let tag of tags.data) {
-            if (tag.name === getTagName(version)) {
-                core.warning(`"${tag.name.trim()}" tag already exists.` + os.EOL);
-                core.setOutput('tagname', '');
-                return
-            }
-        }
+        // // Check for existance of tag and abort (short circuit) if it already exists.
+        // for (let tag of tags.data) {
+        //     if (tag.name === getTagName(version)) {
+        //         core.warning(`"${tag.name.trim()}" tag already exists.` + os.EOL);
+        //         core.setOutput('tagname', '');
+        //         return
+        //     }
+        // }
 
-        // Create the new tag name
-        const tagName = getTagName(version);
+        // // Create the new tag name
+        // const tagName = getTagName(version);
 
-        let tagMsg = core.getInput('tag_message', {required: false}).trim();
-        tagMsg = await setTagMessage(tagMsg, tags, github, owner, repo, changelogStructure, tagName);
+        // let tagMsg = core.getInput('tag_message', { required: false }).trim();
+        // tagMsg = await setTagMessage(tagMsg, tags, ocktokit, owner, repo, changelogStructure, tagName);
 
-        let newTag;
-        try {
-            tagMsg = tagMsg.trim().length > 0 ? tagMsg : `Version ${version}`;
+        // let newTag;
+        // try {
+        //     tagMsg = tagMsg.trim().length > 0 ? tagMsg : `Version ${version}`;
 
-            newTag = await github.git.createTag({
-                owner,
-                repo,
-                tag: tagName,
-                message: tagMsg,
-                object: process.env.GITHUB_SHA,
-                type: 'commit'
-            });
+        //     newTag = await github.git.createTag({
+        //         owner,
+        //         repo,
+        //         tag: tagName,
+        //         message: tagMsg,
+        //         object: process.env.GITHUB_SHA,
+        //         type: 'commit'
+        //     });
 
-            core.info(`Created new tag: ${newTag.data.tag}`)
-        } catch (e) {
-            core.setFailed(e.message);
-            return
-        }
+        //     core.info(`Created new tag: ${newTag.data.tag}`)
+        // } catch (e) {
+        //     core.setFailed(e.message);
+        //     return
+        // }
 
-        let newReference;
-        try {
-            newReference = await github.git.createRef({
-                owner,
-                repo,
-                ref: `refs/tags/${newTag.data.tag}`,
-                sha: newTag.data.sha,
-            });
+        // let newReference;
+        // try {
+        //     newReference = await github.git.createRef({
+        //         owner,
+        //         repo,
+        //         ref: `refs/tags/${newTag.data.tag}`,
+        //         sha: newTag.data.sha,
+        //     });
 
-            core.info(`Reference ${newReference.data.ref} available at ${newReference.data.url}` + os.EOL)
-        } catch (e) {
-            core.warning({
-                owner,
-                repo,
-                ref: `refs/tags/${newTag.data.tag}`,
-                sha: newTag.data.sha,
-            });
+        //     core.info(`Reference ${newReference.data.ref} available at ${newReference.data.url}`)
+        // } catch (e) {
+        //     core.warning({
+        //         owner,
+        //         repo,
+        //         ref: `refs/tags/${newTag.data.tag}`,
+        //         sha: newTag.data.sha,
+        //     });
 
-            core.setFailed(e.message);
-            return
-        }
+        //     core.setFailed(e.message);
+        //     return
+        // }
 
-        // Store values for other actions
-        if (typeof newTag === 'object' && typeof newReference === 'object') {
-            core.setOutput('tagname', tagName);
-            core.setOutput('tagsha', newTag.data.sha);
-            core.setOutput('taguri', newReference.data.url);
-            core.setOutput('tagmessage', tagMsg.trim());
-            core.setOutput('tagref', newReference.data.ref)
-        }
+        // // Store values for other actions
+        // if (typeof newTag === 'object' && typeof newReference === 'object') {
+        //     core.setOutput('tagname', tagName);
+       
+        // }
     } catch (error) {
-        core.warning(error.message);
-        core.setOutput('tagname', '');
-        core.setOutput('tagsha', '');
-        core.setOutput('taguri', '');
-        core.setOutput('tagmessage', '');
-        core.setOutput('tagref', '')
+        core.setFailed(`Exception: ${error}`);
     }
 }
 
-run().then(r => core.debug('done!'));
+run().then((_) => core.debug('DONE'));
