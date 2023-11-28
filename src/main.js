@@ -8,12 +8,11 @@ async function getTagMessage(tags, octokit, owner, repo, version) {
     if (tags.length > 0) {
         try {
             const latestTag = tags.shift();
-            core.info(latestTag);
-            const changelog = await octokit.rest.repos.compareCommits({
+            core.info(latestTag.name);
+            const changelog = await octokit.rest.repos.compareCommitsWithBasehead({
                 owner,
                 repo,
                 base: latestTag.name,
-                head: 'main',
             });
             core.info(changelog.data.commits);
             return changelog.data.commits
