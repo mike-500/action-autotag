@@ -34,10 +34,7 @@ async function createTagAndRef(octokit, owner, repo, version, tagMessage) {
         message: tagMessage,
         object: process.env.GITHUB_SHA,
         type: 'commit',
-        // tagger.name,
-        // tagger.email
     });
-    core.info(newTag);
     core.info(`Created new tag: ${newTag.data.tag}`)
 
     const newRef = await octokit.rest.git.createRef({
@@ -46,8 +43,9 @@ async function createTagAndRef(octokit, owner, repo, version, tagMessage) {
         ref: `refs/tags/${newTag.data.tag}`,
         sha: newTag.data.sha,
     });
-    core.info(newRef);
     core.info(`Reference ${newRef.data.ref} available at ${newRef.data.url}`)
+
+    return newTag.data.tag;
 }
 
 async function getExistingTags(octokit, owner, repo) {
@@ -94,7 +92,9 @@ async function run() {
         }
 
         const tagMessage = await getTagMessage(tags, octokit, owner, repo, version);
-        await createTagAndRef(octokit, owner, repo, version, tagMessage);
+        const newTagName = await createTagAndRef(octokit, owner, repo, version, tagMessage);
+
+        core.setOutput('tagname', newTagName);
         // let newTag;
         // try {
         //     tagMsg = tagMsg.trim().length > 0 ? tagMsg : `Version ${version}`;
