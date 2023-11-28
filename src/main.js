@@ -4,36 +4,27 @@ const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
 
-async function setTagMessage(tagMsg, tags, github, owner, repo, changelogStructure, tagName) {
-    let latestTag;
-    if (tagMsg.length === 0 && tags.data.length > 0) {
+async function getTagMessage(tags, octokit, owner, repo, version) {
+    if (tags.data.length > 0) {
         try {
-            latestTag = tags.data.shift();
-
-            let changelog = await github.repos.compareCommits({
+            const latestTag = tags.data.shift();
+            const changelog = await octokit.rest.repos.compareCommits({
                 owner,
                 repo,
                 base: latestTag.name,
                 head: 'main',
             });
-            const structure = changelogStructure || `**{{message}}** {{sha}})\n`;
-
-            tagMsg = changelog.data.commits
-                .map(commit =>
-                    structure
-                        .replace(/({{message}})|({{messageHeadline}})|({{author}})|({{sha}})/g, (match, message, messageHeadline, author, sha) => {
-                            if (message) return commit.commit.message;
-                            if (messageHeadline) return commit.commit.message.split('\n')[0];
-                            if (author) return !commit.hasOwnProperty('author') || !commit.author.hasOwnProperty('login') ? '' : commit.author.login;
-                            if (sha) return commit.sha
-                        }))
-                .join('\n')
-        } catch (e) {
-            core.warning('Failed to generate changelog from commits: ' + e.message + os.EOL);
-            tagMsg = tagName
+            core.info(changelog.data.commits);
+            return changelog.data.commits
+                .map((commit) => commit.commit.message)
+                .join('\n');
+        } catch (error) {
+            core.warning(`Failed to generate changelog from commits: ${error}`);
+            return version;
         }
+    } else {
+        return version;
     }
-    return tagMsg;
 }
 
 async function getExistingTags(octokit, owner, repo) {
@@ -70,7 +61,6 @@ async function run() {
         const octokit = github.getOctokit(process.env.GITHUB_TOKEN || process.env.INPUT_GITHUB_TOKEN)
         const { owner, repo } = github.context.repo;
 
-        // // Check for existing tag
         const tags = await getExistingTags(octokit, owner, repo);
         core.info(tags.map((tag) => tag.name));
 
@@ -81,11 +71,8 @@ async function run() {
             }
         }
 
-        // // Create the new tag name
-        // const tagName = getTagName(version);
-
-        // let tagMsg = core.getInput('tag_message', { required: false }).trim();
-        // tagMsg = await setTagMessage(tagMsg, tags, ocktokit, owner, repo, changelogStructure, tagName);
+        const tagMsg = await getTagMessage(tags, octokit, owner, repo, version);
+        core.info(tagMsg);
 
         // let newTag;
         // try {
