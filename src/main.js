@@ -75,7 +75,7 @@ async function run() {
         core.info(tags);
         core.info(tags.map((tag) => tag.name));
 
-        for (const tag of tags.data) {
+        for (const tag of tags) {
             if (tag.name === version) {
                 core.setFailed(`Version tag already exists in repo: ${version}`);
                 return;
