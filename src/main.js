@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
 
-async function getTagMessage(tags, octokit, owner, repo, version) {
+const getTagMessage = async (tags, octokit, owner, repo, version) => {
     if (tags.length > 0) {
         try {
             const latestTag = tags.shift();
@@ -25,7 +25,7 @@ async function getTagMessage(tags, octokit, owner, repo, version) {
     }
 }
 
-async function createTagAndRef(octokit, owner, repo, version, tagMessage) {
+const createTagAndRef = async (octokit, owner, repo, version, tagMessage) => {
     const newTag = await octokit.rest.git.createTag({
         owner,
         repo,
@@ -47,7 +47,7 @@ async function createTagAndRef(octokit, owner, repo, version, tagMessage) {
     return newTag.data.tag;
 }
 
-async function getExistingTags(octokit, owner, repo) {
+const getExistingTags = async (octokit, owner, repo) => {
     try {
         const tags = await octokit.rest.repos.listTags({
             owner,
@@ -60,9 +60,8 @@ async function getExistingTags(octokit, owner, repo) {
     }
 }
 
-function loadPubspec() {
-    const pkg_root = core.getInput('package_root', { required: false });
-    const pkgfile = path.join(process.env.GITHUB_WORKSPACE, pkg_root, 'pubspec.yaml');
+const loadPubspec = () => {
+    const pkgfile = path.join(process.env.GITHUB_WORKSPACE, 'pubspec.yaml');
     if (!fs.existsSync(pkgfile)) {
         core.setFailed('pubspec.yaml does not exist');
         return;
@@ -71,18 +70,16 @@ function loadPubspec() {
     return yaml.load(fileContents);
 }
 
-async function run() {
+const run = async () => {
     try {
         const pkg = loadPubspec();
         const version = pkg.version.split('\+')[0];
-
         core.info(`Detected version ${version} in pubspec.yaml`);
 
         const octokit = github.getOctokit(process.env.GITHUB_TOKEN || process.env.INPUT_GITHUB_TOKEN)
         const { owner, repo } = github.context.repo;
 
         const tags = await getExistingTags(octokit, owner, repo);
-
         for (const tag of tags) {
             if (tag.name === version) {
                 core.setFailed(`Version tag already exists in repo: ${version}`);
@@ -99,4 +96,4 @@ async function run() {
     }
 }
 
-run().then((_) => core.debug('DONE'));
+run().then((_) => core.info('DONE'));
