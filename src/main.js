@@ -37,6 +37,7 @@ async function createTagAndRef(octokit, owner, repo, version, tagMessage) {
         // tagger.name,
         // tagger.email
     });
+    core.info(newTag);
 
     const newRef = await octokit.rest.git.createRef({
         owner,
@@ -44,6 +45,7 @@ async function createTagAndRef(octokit, owner, repo, version, tagMessage) {
         ref: `refs/tags/${newTag.data.tag}`,
         sha: newTag.data.sha,
     });
+    core.info(newRef);
 }
 
 async function getExistingTags(octokit, owner, repo) {
