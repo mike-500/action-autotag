@@ -68,14 +68,12 @@ async function run() {
         core.info(`Detected version ${version} in pubspec.yaml`);
 
         const octokit = github.getOctokit(process.env.GITHUB_TOKEN || process.env.INPUT_GITHUB_TOKEN)
-
-        // Get owner and repo from context of payload that triggered the action
         const { owner, repo } = github.context.repo;
 
         // // Check for existing tag
         let tags = await getExistingTags(octokit, owner, repo);
         core.info(tags);
-        core.info(tags.map((e) => e));
+        core.info(tags[0]);
 
         // const tagPrefix = core.getInput('tag_prefix', { required: false });
         // const tagSuffix = core.getInput('tag_suffix', { required: false });
