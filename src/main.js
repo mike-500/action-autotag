@@ -4,6 +4,16 @@ const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
 
+/**
+ * Generates the message for the new tag.
+ *
+ * @param {Array<string>} tags
+ * @param {Octokit} octokit
+ * @param {string} owner
+ * @param {string} repo
+ * @param {string} version
+ * @returns {Promise<string>}
+ */
 const getTagMessage = async (tags, octokit, owner, repo, version) => {
     if (tags.length > 0) {
         try {
@@ -14,7 +24,7 @@ const getTagMessage = async (tags, octokit, owner, repo, version) => {
                 basehead: `${latestTag.name}...master`,
             });
             return changelog.data.commits
-                .map((commit) => `** ${commit.commit.message} **`)
+                .map((commit) => `• ${commit.commit.message}`)
                 .join('\n');
         } catch (error) {
             core.warning(`Failed to generate changelog from commits: ${error}`);
@@ -25,6 +35,16 @@ const getTagMessage = async (tags, octokit, owner, repo, version) => {
     }
 }
 
+/**
+ * Creates the Tag and Ref on GitHub.
+ *
+ * @param {Octokit} octokit
+ * @param {string} owner
+ * @param {string} repo
+ * @param {string} version
+ * @param {string} tagMessage
+ * @returns {Promise<string>}
+ */
 const createTagAndRef = async (octokit, owner, repo, version, tagMessage) => {
     const newTag = await octokit.rest.git.createTag({
         owner,
@@ -47,6 +67,14 @@ const createTagAndRef = async (octokit, owner, repo, version, tagMessage) => {
     return newTag.data.tag;
 }
 
+/**
+ * Get the exisiting tags from GitHub for the Repo.
+ *
+ * @param {Octokit} octokit
+ * @param {string} owner
+ * @param {string} repo
+ * @returns {Promise<Array<string>>}
+ */
 const getExistingTags = async (octokit, owner, repo) => {
     try {
         const tags = await octokit.rest.repos.listTags({
@@ -60,10 +88,18 @@ const getExistingTags = async (octokit, owner, repo) => {
     }
 }
 
+/**
+ * Loads the pubspec.yaml
+ *
+ * @param {Octokit} octokit
+ * @param {string} owner
+ * @param {string} repo
+ * @returns {Promise}
+ */
 const loadPubspec = () => {
     const pkgfile = path.join(process.env.GITHUB_WORKSPACE, 'pubspec.yaml');
     if (!fs.existsSync(pkgfile)) {
-        core.setFailed('pubspec.yaml does not exist');
+        core.setFailed(`${pkgfile} does not exist`);
         return;
     }
     let fileContents = fs.readFileSync(pkgfile, 'utf8');
